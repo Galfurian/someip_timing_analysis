@@ -3,6 +3,7 @@ SOME/IP entities definition.
 """
 
 import math
+import json
 
 from typing import List
 
@@ -11,7 +12,7 @@ class Phase(object):
     """
     Represents a SOME/IP phase (e.g., Boot, InitalWait, Repetition, etc.).
 
-    Args:
+    Parameters:
         start    (float) : The time when the phase starts.
         end      (float) : The time when the phase ends.
         duration (float) : The duration of the phase.
@@ -50,7 +51,7 @@ class Entity(object):
     """
     Represents either a Client or a Service.
 
-    Args:
+    Parameters:
         name       (str)         : The name of the entity.
         boot_del   (float)       : The boot delay.
         init_del   (float)       : The initial wait phase delay.
@@ -104,12 +105,21 @@ class Entity(object):
         for i in range(0, self.rep_max):
             self.rep_times.append(self.rep_times[-1] + pow(2, i) * self.rep_del)
 
+    def __repr__(self) -> str:
+        """
+        Transforms the entity into a string.
+
+        Returns:
+            str: the entity to string.
+        """
+        return self.name
+
 
 class Client(Entity):
     """
     Represents a client.
 
-    Args:
+    Parameters:
         find_mode  (bool)        : If the client is activelly sending find messages.
 
     Parameters (inherited):
@@ -126,7 +136,7 @@ class Client(Entity):
 
     def __init__(self, name: str, boot_del: float, init_del: float, rep_del: float, rep_max: int, find_mode: bool):
         """
-        The constructor for SOME/IP client.
+        The constructor for SOME/IP clients.
 
         Args:
             boot_del  (float) : The boot delay.
@@ -144,7 +154,7 @@ class Service(Entity):
     """
     Represents a service.
 
-    Args:
+    Parameters:
         cyc_del    (float)       : The delay between offer messages in the Main Phase.
         ans_del    (float)       : The answer delay.
         offer_mode (bool)        : If the service is activelly sending offer messages.
@@ -182,6 +192,52 @@ class Service(Entity):
         self.cyc_del = cyc_del
         self.ans_del = ans_del
         self.offer_mode = offer_mode
+
+
+class Relation:
+    """Keeps track of which service serve which client.
+
+    Parameters:
+        client  (Client)    : The client which requires a given service.
+        service (Service)   : The specific service the client requests.
+        t_c     (float)     : The communication delay specific of a client/service pair.
+    """
+    client: Client
+    service: Service
+    t_c: float
+
+    def __init__(self, client: Client, service: Service, t_c: float) -> None:
+        self.client = client
+        self.service = service
+        self.t_c = t_c
+
+    def __repr__(self) -> str:
+        """
+        Transforms the relation into a string.
+
+        Returns:
+            str: the relation to string.
+        """
+        return "<%s,%s>" % (str(self.client), str(self.service))
+
+
+class EntitiesEncoder(json.JSONEncoder):
+    def default(self, o):
+        return o.__dict__
+
+
+class EntitiesDecoder(json.JSONDecoder):
+    def __init__(self, *args, **kwargs):
+        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+
+    def object_hook(self, d):
+        if 'offer_mode' in d:
+            return Service(d['name'], d['boot_del'], d['init_del'], d['rep_del'], d['rep_max'], d['cyc_del'], d['ans_del'], d['offer_mode'])
+        elif 'find_mode' in d:
+            return Client(d['name'], d['boot_del'], d['init_del'], d['rep_del'], d['rep_max'], d['find_mode'])
+        elif ('client' in d) and ('service' in d) and ('t_c' in d):
+            return Relation(EntitiesDecoder().decode(d['client']), EntitiesDecoder().decode(d['service']), d['t_c'])
+        return d
 
 
 def get_time_max(entities: List[Entity]) -> float:

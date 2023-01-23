@@ -268,7 +268,7 @@ def timing_analysis_b(s: Service, c: Client, t_c: float) -> float:
     # Compute x_s.
     x_s = compute_x_s_hat(s, c, t_c)
     # Compute the lenght of the Repetition Phase, up to the x_s-th message.
-    t_rep = compute_t_rep(s, x_s)
+    t_rep = compute_t_rep(c, x_s)
     # Compute the result.
     result = c.t_init + t_rep + t_c + s.ans_del + t_c
     # Debug output and return.
@@ -316,15 +316,28 @@ def timing_analysis(s: Service, c: Client, t_c: float) -> float:
     """
     # Service in Offer Mode and Client in Listen Mode
     if s.offer_mode and not c.find_mode:
-        __logger.debug("(a) Service in Offer Mode and Client in Listen Mode")
+        __logger.info("(a) Service ({}) in Offer Mode and Client ({}) in Listen Mode".format(s, c))
         return timing_analysis_a(s, c, t_c)
     # Service in Silent Mode and Client in Request Mode
     if not s.offer_mode and c.find_mode:
-        __logger.debug("(b) Service in Silent Mode and Client in Request Mode")
+        __logger.info("(b) Service ({}) in Silent Mode and Client ({}) in Request Mode".format(s, c))
         return timing_analysis_b(s, c, t_c)
     # Service in Offer Mode and Client in Request Mode
     if s.offer_mode and c.find_mode:
-        __logger.debug("(c) Service in Offer Mode and Client in Request Mode")
+        __logger.info("(c) Service ({}) in Offer Mode and Client ({}) in Request Mode".format(s, c))
         return timing_analysis_c(s, c, t_c)
     # Check that at least one of them is active.
     sys.exit("Either service or client must be active (sending find/offer messages)")
+
+
+def timing_analysis_system(system: List[Relation]) -> float:
+    """Computes the timespan that a set of clients on a note node needs to find the
+    service to which it wants to subscribe to.
+
+    Args:
+        system (List[Relation]): The list of client/service pairs composing the system.
+
+    Returns:
+        float: the discovery time for the entire system.
+    """
+    return max([timing_analysis(entry.service, entry.client, entry.t_c) for entry in system])
