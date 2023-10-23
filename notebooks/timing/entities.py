@@ -218,7 +218,7 @@ class Relation:
         Returns:
             str: the relation to string.
         """
-        return "<%s,%s>" % (str(self.client), str(self.service))
+        return "<%s,%s,%.2f>" % (str(self.client), str(self.service), self.t_c)
 
 
 class EntitiesEncoder(json.JSONEncoder):
