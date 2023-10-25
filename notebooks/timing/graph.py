@@ -1,3 +1,4 @@
+from queue import Queue
 import collections
 import heapq
 
@@ -104,22 +105,21 @@ class Graph(object):
         return source in self._graph and target in self._graph[source]
 
     def find_shortest_path(self, source, target, path=[]):
-        from queue import Queue
-        # create a priority queue and hash set to store visited nodes
+        # Create a priority queue and hash set to store visited nodes.
         queue = Queue()
         visited = set()
         queue.put((0, source, []))
-        # traverse graph with BFS
+        # Traverse graph with BFS.
         while queue:
             (cost, node, path) = queue.get()
-            # visit the node if it was not visited before
+            # Visit the node if it was not visited before.
             if node not in visited:
                 visited.add(node)
                 path = path + [node]
-                # hit the sink
+                # Hit the target.
                 if node == target:
                     return (cost, path)
-                # visit neighbours
+                # Visit neighbours.
                 for neighbour in self._graph[node]:
                     if neighbour not in visited:
                         queue.put((cost + self._weights[(node, neighbour)], neighbour, path))
