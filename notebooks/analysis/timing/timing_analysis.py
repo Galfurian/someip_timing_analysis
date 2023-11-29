@@ -316,15 +316,15 @@ def timing_analysis(s: Service, c: Client, t_c: float) -> float:
     """
     # Service in Offer Mode and Client in Listen Mode
     if s.offer_mode and not c.find_mode:
-        __logger.info("(a) Service ({}) in Offer Mode and Client ({}) in Listen Mode".format(s, c))
+        __logger.info(f"(a) Service in Offer Mode and Client in Listen Mode")
         return timing_analysis_a(s, c, t_c)
     # Service in Silent Mode and Client in Request Mode
     if not s.offer_mode and c.find_mode:
-        __logger.info("(b) Service ({}) in Silent Mode and Client ({}) in Request Mode".format(s, c))
+        __logger.info(f"(b) Service in Silent Mode and Client in Request Mode")
         return timing_analysis_b(s, c, t_c)
     # Service in Offer Mode and Client in Request Mode
     if s.offer_mode and c.find_mode:
-        __logger.info("(c) Service ({}) in Offer Mode and Client ({}) in Request Mode".format(s, c))
+        __logger.info(f"(c) Service in Offer Mode and Client in Request Mode")
         return timing_analysis_c(s, c, t_c)
     # Check that at least one of them is active.
     sys.exit("Either service or client must be active (sending find/offer messages)")

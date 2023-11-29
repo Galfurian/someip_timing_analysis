@@ -18,6 +18,7 @@ class Phase(object):
         duration (float) : The duration of the phase.
         label    (str)   : The lable identifying the phase.
     """
+
     start: float
     end: float
     duration: float
@@ -44,7 +45,7 @@ class Phase(object):
         Returns:
             str: the Phase to string.
         """
-        return "<%.2f,%.2f,%s>" % (self.start, self.end, self.label)
+        return f"<{self.start:.2f},{self.end:.2f},{self.label}>"
 
 
 class Entity(object):
@@ -61,6 +62,7 @@ class Entity(object):
         phases     (List[Phase]) : The list of phases.
         rep_times  (List[float]) : The instants when messages are sents in the Repetition Phase.
     """
+
     name: str
     boot_del: float
     init_del: float
@@ -70,7 +72,9 @@ class Entity(object):
     phases: List[Phase]
     rep_times: List[float]
 
-    def __init__(self, name: str, boot_del: float, init_del: float, rep_del: float, rep_max: int):
+    def __init__(
+        self, name: str, boot_del: float, init_del: float, rep_del: float, rep_max: int
+    ):
         """
         The constructor for SOME/IP entities.
 
@@ -94,7 +98,13 @@ class Entity(object):
         # [1] Initial Wait Phase
         self.phases.append(Phase(self.phases[-1].end, init_del, "Initial"))
         # [2] Repetition Phase
-        self.phases.append(Phase(self.phases[-1].end, sum(math.pow(2, i) * rep_del for i in range(0, rep_max)), "Repetition"))
+        self.phases.append(
+            Phase(
+                self.phases[-1].end,
+                sum(math.pow(2, i) * rep_del for i in range(0, rep_max)),
+                "Repetition",
+            )
+        )
         # [3] Main Phase
         self.phases.append(Phase(self.phases[-1].end, 1, "Main"))
         # Compute the time instants when the repetition messages are sent.
@@ -132,9 +142,18 @@ class Client(Entity):
         phases     (List[Phase]) : The list of phases.
         rep_times  (List[float]) : The instants when messages are sents in the Repetition Phase.
     """
+
     find_mode: bool
 
-    def __init__(self, name: str, boot_del: float, init_del: float, rep_del: float, rep_max: int, find_mode: bool):
+    def __init__(
+        self,
+        name: str,
+        boot_del: float,
+        init_del: float,
+        rep_del: float,
+        rep_max: int,
+        find_mode: bool,
+    ):
         """
         The constructor for SOME/IP clients.
 
@@ -169,11 +188,22 @@ class Service(Entity):
         phases     (List[Phase]) : The list of phases.
         rep_times  (List[float]) : The instants when messages are sents in the Repetition Phase.
     """
+
     cyc_del: float
     ans_del: float
     offer_mode: bool
 
-    def __init__(self, name: str, boot_del: float, init_del: float, rep_del: float, rep_max: int, cyc_del: float, ans_del: float, offer_mode: bool):
+    def __init__(
+        self,
+        name: str,
+        boot_del: float,
+        init_del: float,
+        rep_del: float,
+        rep_max: int,
+        cyc_del: float,
+        ans_del: float,
+        offer_mode: bool,
+    ):
         """
         The constructor for SOME/IP services.
 
@@ -202,6 +232,7 @@ class Relation:
         service (Service)   : The specific service the client requests.
         t_c     (float)     : The communication delay specific of a client/service pair.
     """
+
     client: Client
     service: Service
     t_c: float
@@ -218,7 +249,7 @@ class Relation:
         Returns:
             str: the relation to string.
         """
-        return "<%s,%s,%.2f>" % (str(self.client), str(self.service), self.t_c)
+        return f"<{self.client},{self.service},{self.t_c}>"
 
 
 class EntitiesEncoder(json.JSONEncoder):
@@ -231,12 +262,32 @@ class EntitiesDecoder(json.JSONDecoder):
         json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
 
     def object_hook(self, d):
-        if 'offer_mode' in d:
-            return Service(d['name'], d['boot_del'], d['init_del'], d['rep_del'], d['rep_max'], d['cyc_del'], d['ans_del'], d['offer_mode'])
-        elif 'find_mode' in d:
-            return Client(d['name'], d['boot_del'], d['init_del'], d['rep_del'], d['rep_max'], d['find_mode'])
-        elif ('client' in d) and ('service' in d) and ('t_c' in d):
-            return Relation(EntitiesDecoder().decode(d['client']), EntitiesDecoder().decode(d['service']), d['t_c'])
+        if "offer_mode" in d:
+            return Service(
+                d["name"],
+                d["boot_del"],
+                d["init_del"],
+                d["rep_del"],
+                d["rep_max"],
+                d["cyc_del"],
+                d["ans_del"],
+                d["offer_mode"],
+            )
+        elif "find_mode" in d:
+            return Client(
+                d["name"],
+                d["boot_del"],
+                d["init_del"],
+                d["rep_del"],
+                d["rep_max"],
+                d["find_mode"],
+            )
+        elif ("client" in d) and ("service" in d) and ("t_c" in d):
+            return Relation(
+                EntitiesDecoder().decode(d["client"]),
+                EntitiesDecoder().decode(d["service"]),
+                d["t_c"],
+            )
         return d
 
 
