@@ -1,18 +1,14 @@
 from queue import Queue
 import collections
-import heapq
-
 
 class Node:
-    def __init__(self, id, value=None):
+    def __init__(self, id):
         """Initialize the node.
 
         Args:
             id    : The unique identifier for the node.
-            value : The value stored in the node.
         """
         self.id = id
-        self.value = value
 
     def __eq__(self, other) -> bool:
         """Checks equality between two nodes.
@@ -35,6 +31,7 @@ class Node:
 
     def __repr__(self) -> str:
         return str(self.id)
+
 
 class Graph(object):
     """Graph data structure, undirected by default."""
@@ -111,10 +108,11 @@ class Graph(object):
 
 def printgraph(G: Graph):
     for node, connections in G.graph.items():
-        print("{} {}:".format(node, node._value))
+        print("{}:".format(node))
         for connection in connections:
             print(
-                "    {} ({:.2f}) {}".format(
-                    connection, G.edge_data[(node, connection)], connection._value
+                "    {} ({:.2f})".format(
+                    connection, G.edge_data[(node, connection)]
                 )
             )
+
