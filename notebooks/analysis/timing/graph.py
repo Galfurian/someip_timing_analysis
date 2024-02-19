@@ -139,6 +139,21 @@ class Graph(object):
             for neighbour in neighbours:
                 edge_list.append((source, neighbour))
         return edge_list
+    
+    def get_node_list(self) -> List[Node]:
+        """Returns the complete list of nodes.
+
+        Returns:
+            List[Node]: The list of nodes.
+        """
+        node_list = []
+        for source, neighbours in self.graph.items():
+            if source not in node_list:
+                node_list.append(source)
+            for neighbour in neighbours:
+                if neighbour not in node_list:
+                    node_list.append(neighbour)
+        return node_list
 
 
     def find_shortest_path(self, source: Node, target: Node) -> Tuple[float, List]:
@@ -222,7 +237,7 @@ class Graph(object):
         # Add the edges.
         graph.add_edges_from(edge_list)
         # Positions for all nodes.
-        pos = nx.spring_layout(graph, seed=1)
+        pos = nx.spring_layout(graph, seed=1, k=0.15, iterations=20)
         # Add the nodes.
         nx.draw_networkx_nodes(graph, pos, node_color="tab:blue")
         # Draw the node labels.
