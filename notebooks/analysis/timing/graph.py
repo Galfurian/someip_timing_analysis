@@ -1,7 +1,17 @@
 from queue import Queue
+from typing import Tuple, Callable, List
+# For creating a dictionary of sets.
 import collections
+# For saving the graph to file.
+import csv
+# For plotting the graph.
+import matplotlib.pyplot as plt
+import networkx as nx
 
 class Node:
+    """A node of the graph.
+    """
+
     def __init__(self, id):
         """Initialize the node.
 
@@ -36,27 +46,49 @@ class Node:
 class Graph(object):
     """Graph data structure, undirected by default."""
 
-    def __init__(self, connections, directed=False):
+    def __init__(self, connections: List[Tuple[Node, Node, Callable]], directed: bool = False):
+        """Creates a new graph.
+
+        Args:
+            connections (List[Tuple[Node, Node, Callable]]): A list of connections.
+            directed (bool, optional): Determines if the graph is directed. Defaults to False.
+        """
         self.graph = collections.defaultdict(set)
         self.weight_functions = collections.defaultdict(set)
         self.directed: bool = directed
+        # Add the connections.
         self.add_connections(connections)
 
-    def add_connections(self, connections):
-        """Add connections (list of tuple pairs) to graph"""
-        for source, target, weight_function in connections:
-            self.add(source, target, weight_function)
+    def add_connections(self, connections: List[Tuple[Node, Node, Callable]]):
+        """Adds a list of connections to the graph.
 
-    def add(self, source, target, weight_function):
-        """Add connection between source and target"""
+        Args:
+            connections (List[Tuple[Node, Node, Callable]]): A list of connections.
+        """
+        for source, target, weight_function in connections:
+            self.add_connection(source, target, weight_function)
+
+    def add_connection(self, source: Node, target: Node, weight_function: Callable):
+        """Adds a new connection between source and target to the graph.
+
+        Args:
+            source (Node): The source node.
+            target (Node): The target node.
+            weight_function (Callable): The weight function.
+        """
         self.graph[source].add(target)
-        self.weight_functions[(source, target)] = weight_function
+        self.weight_functions[source, target] = weight_function
+        # If the graph is not directed, we add the connection on the oposite direction.
         if not self.directed:
             self.graph[target].add(source)
-            self.weight_functions[(target, source)] = weight_function
+            self.weight_functions[target, source] = weight_function
 
-    def remove(self, node):
-        """Remove all references to node"""
+    def remove(self, node: Node):
+        """Remove all references to node.
+
+        Args:
+            node (Node): The node we want to remove.
+        """
         # Delete the node itself.
         try:
             del self.graph[node]
@@ -69,11 +101,56 @@ class Graph(object):
             except KeyError:
                 pass
 
-    def is_connected(self, source, target):
-        """Is source directly connected to target"""
-        return source in self.graph and target in self.graph[source]
+    def is_connected(self, source: Node, target: Node) -> bool:
+        """Is source directly connected to target.
 
-    def find_shortest_path(self, source, target):
+        Args:
+            source (Node): Source node.
+            target (Node): Target node.
+
+        Returns:
+            bool: if source is connected to target.
+        """
+        return source in self.graph and target in self.graph[source]
+    
+    def get_weight(self, source: Node, target: Node) -> float:
+        """Returns the weight between source and target.
+
+        Args:
+            source (Node): Source node.
+            target (Node): Target node.
+
+        Returns:
+            float: the weight between source and target.
+        """
+        if self.is_connected(source, target):
+            if self.weight_functions[source, target]:
+                return self.weight_functions[source, target](self, source, target)
+        return 0
+    
+    def get_edge_list(self) -> List[Tuple[Node, Node]]:
+        """Returns the complete list of edges.
+
+        Returns:
+            List[Tuple[Node, Node]]: The list of edges.
+        """
+        edge_list = []
+        for source, neighbours in self.graph.items():
+            for neighbour in neighbours:
+                edge_list.append((source, neighbour))
+        return edge_list
+
+
+    def find_shortest_path(self, source: Node, target: Node) -> Tuple[float, List]:
+        """Finds the shortest path from source to target.
+
+        Args:
+            source (Node): Source node.
+            target (Node): Target node.
+
+        Returns:
+            Tuple[float, List]: The path's cost, and the path itself.
+        """
         # Create a priority queue and hash set to store visited nodes.
         queue = Queue()
         visited = set()
@@ -93,26 +170,74 @@ class Graph(object):
                 # Visit neighbours.
                 for neighbour in self.graph[node]:
                     if neighbour not in visited:
-                        # Compute the weight.
-                        weight = self.weight_functions[(node, neighbour)](self, node, neighbour)
+                        # Compute the weight using the connection-specific weight function.
+                        weight = self.get_weight(node, neighbour)
                         # Update the queue.
                         queue.put((cost + weight, neighbour, path))
         return (float("inf"), [])
+    
+    def write_to_csv(graph: 'Graph', filename: str):
+        """Writes the graph to csv.
+
+        Args:
+            graph (Graph): The graph we want to write to csv.
+            filename (str): The file where we store the graph.
+        """
+        with open(filename, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            for source, target in graph.get_edge_list():
+                writer.writerow([source.id, target.id, graph.get_weight(source, target)])
+
+    def read_from_csv(filename: str) -> 'Graph':
+        """Reads the graph from csv.
+
+        Args:
+            filename (str): The file from which we read the graph.
+
+        Returns:
+            Graph: the new graph.
+        """
+        graph = Graph(connections={}, directed=False)
+        with open(filename, newline='') as csvfile:
+            reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+            for row in reader:
+                graph.add_connection(Node(row[0]), Node(row[1]), lambda graph, node0, node1: float(row[2]))
+        return graph
+    
+
+    def plot_graph(self):
+        if self.directed:
+            graph = nx.DiGraph()
+        else:
+            graph = nx.Graph()
+
+        # List of edges.
+        edge_list = [(source.id, target.id) for (source, target) in self.get_edge_list()]
+
+        # List of edge labels.
+        edge_labels = {}
+        for (source, target) in self.get_edge_list():
+            edge_labels[source.id, target.id] = str(self.get_weight(source, target))
+
+        # Add the edges.
+        graph.add_edges_from(edge_list)
+        # Positions for all nodes.
+        pos = nx.spring_layout(graph, seed=1)
+        # Add the nodes.
+        nx.draw_networkx_nodes(graph, pos, node_color="tab:blue")
+        # Draw the node labels.
+        nx.draw_networkx_labels(graph, pos, font_family="sans-serif")
+        # Draw the edges.
+        nx.draw_networkx_edges(graph, pos, edgelist=edge_list, width=1.5, edge_color="tab:gray")
+        # Draw the edges weights.
+        nx.draw_networkx_edge_labels(graph, pos, edge_labels)
+        # Draw the graph.
+        plt.tight_layout()
+        plt.show()
+
 
     def __str__(self):
-        return str(dict(self.graph))
+        return str([(S, T, self.get_weight(S, T))for (S, T) in self.get_edge_list()])
 
     def __repr__(self):
-        return str(dict(self.graph))
-
-
-def printgraph(G: Graph):
-    for node, connections in G.graph.items():
-        print("{}:".format(node))
-        for connection in connections:
-            print(
-                "    {} ({:.2f})".format(
-                    connection, G.edge_data[(node, connection)]
-                )
-            )
-
+        return str([(S, T, self.get_weight(S, T))for (S, T) in self.get_edge_list()])
