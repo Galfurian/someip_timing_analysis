@@ -2,8 +2,8 @@
 Timing analysis functions.
 """
 
-from analysis.timing.entities import *
-from analysis.timing.support import *
+from .entities import *
+from .logger import *
 
 import math
 import sys

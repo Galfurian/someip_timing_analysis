@@ -6,8 +6,8 @@ Timing analysis functions, as found in:
     doi: 10.7873/DATE.2015.0469.
 """
 
-from analysis.timing.entities import *
-from analysis.timing.support import *
+from .entities import *
+from .logger import *
 
 import math
 import sys
