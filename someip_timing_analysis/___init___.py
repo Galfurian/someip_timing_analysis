@@ -1,6 +1,6 @@
 # __init__.py
-from . import analysis_ssg15
-from . import analysis
-from . import entities
-from . import graph
-from . import logger
+import analysis_ssg15
+import analysis
+import entities
+import graph
+import logger
