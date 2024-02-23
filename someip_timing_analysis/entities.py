@@ -252,6 +252,27 @@ class Relation:
         return f"<{self.client},{self.service},{self.t_c}>"
 
 
+class System:
+    """Keeps track of a system.
+
+    Parameters:
+        client  (Client)    : The client which requires a given service.
+    """
+
+    relations: List[Relation]
+
+    def __init__(self, relations: List[Relation]) -> None:
+        self.relations = relations
+
+    def __repr__(self) -> str:
+        """
+        Transforms the system into a string.
+
+        Returns:
+            str: the system to string.
+        """
+        return f"{relations}"
+
 class EntitiesEncoder(json.JSONEncoder):
     def default(self, o):
         return o.__dict__

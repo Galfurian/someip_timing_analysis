@@ -330,14 +330,14 @@ def timing_analysis(s: Service, c: Client, t_c: float) -> float:
     sys.exit("Either service or client must be active (sending find/offer messages)")
 
 
-def timing_analysis_system(system: List[Relation]) -> float:
+def timing_analysis_system(system: System) -> float:
     """Computes the timespan that a set of clients on a note node needs to find the
     service to which it wants to subscribe to.
 
     Args:
-        system (List[Relation]): The list of client/service pairs composing the system.
+        system (System): The list of client/service pairs composing the system.
 
     Returns:
         float: the discovery time for the entire system.
     """
-    return max([timing_analysis(entry.service, entry.client, entry.t_c) for entry in system])
+    return max([timing_analysis(entry.service, entry.client, entry.t_c) for entry in system.relations])

@@ -1,1 +1,0 @@
-from someip_timing_analysis import *

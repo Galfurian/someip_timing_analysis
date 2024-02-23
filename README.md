@@ -4,6 +4,14 @@ This repository contains a python code that computes the `discovery time` for a 
 
 The scripts implementing the analysis are contained in the `notebooks/timing/` folder, specifically the `notebooks/timing/timing_analysis.py` script.
 
+## Installation
+
+You can install this package using pip. Run the following command:
+
+```python
+pip install git+https://github.com/Galfurian/someip_timing_analysis.git
+```
+
 ## Folder Structure
 
 - `someip_timing_analysis` : Contains the python source code to perform SOME/IP analyses:
