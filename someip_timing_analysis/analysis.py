@@ -2,6 +2,7 @@
 Timing analysis functions.
 """
 
+from typing import Tuple
 from .entities import *
 from .logger import *
 
@@ -330,7 +331,19 @@ def timing_analysis(s: Service, c: Client, t_c: float) -> float:
     sys.exit("Either service or client must be active (sending find/offer messages)")
 
 
-def timing_analysis_system(system: System) -> float:
+def compute_discovery_times(system: System) -> List[float]:
+    """Computes the discovery time for all the relations in the system.
+
+    Args:
+        system (System): The list of client/service pairs composing the system.
+
+    Returns:
+        List[Tuple[float, Relation]]: the list of all the (discovery time, relation) pairs for the entire system
+    """
+    return [(timing_analysis(relation.service, relation.client, relation.t_c), relation) for relation in system.relations]
+
+
+def get_highest_discovery_time(system: System) -> float:
     """Computes the timespan that a set of clients on a note node needs to find the
     service to which it wants to subscribe to.
 
@@ -340,4 +353,17 @@ def timing_analysis_system(system: System) -> float:
     Returns:
         float: the discovery time for the entire system.
     """
-    return max([timing_analysis(entry.service, entry.client, entry.t_c) for entry in system.relations])
+    # Return just the highest discovery time.
+    return max([entry[0] for entry in compute_discovery_times(system)])
+
+def get_highest_impact_relation(system: System) -> Tuple[float, Relation]:
+    """Returns the relation that has the highest impact on the discovery time for the whole system.
+
+    Args:
+        system (System): The list of client/service pairs composing the system.
+
+    Returns:
+        : the discovery time for the entire system.
+    """
+    # Return the (discovery time, relation) with the highest impact on the system.
+    return max(compute_discovery_times(system), key = lambda entry: entry[0])

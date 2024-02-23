@@ -5,7 +5,8 @@ SOME/IP entities definition.
 import math
 import json
 
-from typing import List
+from typing import List, Tuple, Callable
+from .graph import Node, Graph
 
 
 class Phase(object):
@@ -262,6 +263,11 @@ class System:
     relations: List[Relation]
 
     def __init__(self, relations: List[Relation]) -> None:
+        """Initalizes a system.
+
+        Args:
+            relations (List[Relation]): The list of relations.
+        """
         self.relations = relations
 
     def __repr__(self) -> str:
@@ -271,7 +277,7 @@ class System:
         Returns:
             str: the system to string.
         """
-        return f"{relations}"
+        return f"{self.relations}"
 
 class EntitiesEncoder(json.JSONEncoder):
     def default(self, o):
