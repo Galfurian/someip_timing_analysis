@@ -1,5 +1,3 @@
-from setuptools.command.build_py import build_py
-from setuptools.command.install import install
 import setuptools
 
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -7,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name='someip-timing-analysis',
-    version='1.3.1',
+    version='1.3.3',
     author='Enrico Fraccaroli',
     author_email='enrico.fraccaroli@univr.it',
     description='SOME/IP timing analysis library',
