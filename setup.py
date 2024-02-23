@@ -1,11 +1,13 @@
+from setuptools.command.build_py import build_py
+from setuptools.command.install import install
 import setuptools
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='SOME/IP Timing Analysis',
-    version='1.0.0',
+    name='someip-timing-analysis',
+    version='1.3.1',
     author='Enrico Fraccaroli',
     author_email='enrico.fraccaroli@univr.it',
     description='SOME/IP timing analysis library',
@@ -14,6 +16,5 @@ setuptools.setup(
     url='https://github.com/Galfurian/someip_timing_analysis/',
     license='MIT',
     packages=['someip_timing_analysis'],
-    install_requires=[],
     include_package_data=True
 )
