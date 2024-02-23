@@ -4,12 +4,20 @@ This repository contains a python code that computes the `discovery time` for a 
 
 The scripts implementing the analysis are contained in the `notebooks/timing/` folder, specifically the `notebooks/timing/timing_analysis.py` script.
 
-## Installation
+## Install
 
-You can install this package using pip. Run the following command:
+You can install the package by running the following command:
 
 ```python
-pip install git+https://github.com/Galfurian/someip_timing_analysis.git
+pip install git+https://github.com/Galfurian/someip_timing_analysis.git --user
+```
+
+## Uninstall
+
+You can remove the package by running the following command:
+
+```python
+pip uninstall someip-timing-analysis
 ```
 
 ## Folder Structure
