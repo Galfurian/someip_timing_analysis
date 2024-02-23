@@ -2,8 +2,8 @@
 Plot functions.
 """
 
-from analysis.timing.entities import *
-from analysis.plot.support import *
+from someip_timing_analysis.entities import *
+from .utility import *
 
 import matplotlib.pyplot as plt
 import sys

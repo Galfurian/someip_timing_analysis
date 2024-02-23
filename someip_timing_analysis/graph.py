@@ -1,12 +1,11 @@
-from queue import Queue
+# For typing.
 from typing import Tuple, Callable, List
 # For creating a dictionary of sets.
 import collections
 # For saving the graph to file.
 import csv
-# For plotting the graph.
-import matplotlib.pyplot as plt
-import networkx as nx
+# For finding the shortest path.
+from queue import Queue
 
 class Node:
     """A node of the graph.
@@ -139,6 +138,21 @@ class Graph(object):
             for neighbour in neighbours:
                 edge_list.append((source, neighbour))
         return edge_list
+    
+    def get_node_list(self) -> List[Node]:
+        """Returns the complete list of nodes.
+
+        Returns:
+            List[Node]: The list of nodes.
+        """
+        node_list = []
+        for source, neighbours in self.graph.items():
+            if source not in node_list:
+                node_list.append(source)
+            for neighbour in neighbours:
+                if neighbour not in node_list:
+                    node_list.append(neighbour)
+        return node_list
 
 
     def find_shortest_path(self, source: Node, target: Node) -> Tuple[float, List]:
@@ -204,38 +218,6 @@ class Graph(object):
                 graph.add_connection(Node(row[0]), Node(row[1]), lambda graph, node0, node1: float(row[2]))
         return graph
     
-
-    def plot_graph(self):
-        if self.directed:
-            graph = nx.DiGraph()
-        else:
-            graph = nx.Graph()
-
-        # List of edges.
-        edge_list = [(source.id, target.id) for (source, target) in self.get_edge_list()]
-
-        # List of edge labels.
-        edge_labels = {}
-        for (source, target) in self.get_edge_list():
-            edge_labels[source.id, target.id] = str(self.get_weight(source, target))
-
-        # Add the edges.
-        graph.add_edges_from(edge_list)
-        # Positions for all nodes.
-        pos = nx.spring_layout(graph, seed=1)
-        # Add the nodes.
-        nx.draw_networkx_nodes(graph, pos, node_color="tab:blue")
-        # Draw the node labels.
-        nx.draw_networkx_labels(graph, pos, font_family="sans-serif")
-        # Draw the edges.
-        nx.draw_networkx_edges(graph, pos, edgelist=edge_list, width=1.5, edge_color="tab:gray")
-        # Draw the edges weights.
-        nx.draw_networkx_edge_labels(graph, pos, edge_labels)
-        # Draw the graph.
-        plt.tight_layout()
-        plt.show()
-
-
     def __str__(self):
         return str([(S, T, self.get_weight(S, T))for (S, T) in self.get_edge_list()])
 
