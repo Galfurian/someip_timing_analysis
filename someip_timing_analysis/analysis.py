@@ -16,6 +16,23 @@ def set_logger_level(level: int):
     __logger.setLevel(level)
 
 
+class Result:
+    """Holds the details about a discovery time.
+    """
+
+    def __init__(self, client: Client, service: Service, communication_delay: float, discovery_time: float, details: dict):
+        """Initialize the discovery.
+
+        Args:
+            id    : The unique identifier for the node.
+        """
+        self.client = client
+        self.service = service
+        self.communication_delay = communication_delay
+        self.discovery_time = discovery_time
+        self.details = details
+
+
 def compute_t_rep(e: Entity, x: int) -> float:
     """
     Computes the timespan from the start of the Repetition Phase up to when the
@@ -367,3 +384,107 @@ def get_highest_impact_relation(system: System) -> Tuple[float, Relation]:
     """
     # Return the (discovery time, relation) with the highest impact on the system.
     return max(compute_discovery_times(system), key = lambda entry: entry[0])
+
+
+def timing_analysis_a_full_details(s: Service, c: Client, t_c: float) -> Result:
+    """
+    Computes the timespan that a client running on a node needs to find the
+    service to which it wants to subscribe to. The case it covers is that of
+    Service in Offer Mode and Client in Listen Mode.
+
+    Args:
+        s   (Service) : the service.
+        c   (Client)  : the client.
+        t_c (float)   : the communication delay.
+
+    Returns:
+        float: the discovery timespan.
+    """
+    # Compute x_c.
+    x_c = compute_x_c_hat(s, c, t_c)
+    # Compute the lenght of the Repetition Phase, up to the x_c-th message.
+    t_rep = compute_t_rep(s, x_c)
+    # Copmute the number of messages sent in the Main Phase, might be zero.
+    y = compute_y_hat(s, c, t_c)
+    # Based on y, copmute the amount of time spent in the Main Phase, might be
+    # zero.
+    t_cyc = compute_t_cyc(s, y)
+    # Compute the discovery time.
+    discovery_time = s.t_init + t_rep + t_cyc + t_c
+    # Return the full result.
+    return Result(c, s, t_c, discovery_time, details={
+            "s.t_init" : s.t_init,
+            "s.t_rep" : t_rep,
+            "s.t_cyc" : t_cyc,
+            "t_c" : t_c
+        }
+    )
+
+def timing_analysis_b_full_details(s: Service, c: Client, t_c: float) -> Result:
+    """
+    Computes the timespan that a client running on a node needs to find the
+    service to which it wants to subscribe to. The case it covers is that of
+    Service in Silent Mode and Client in Request Mode.
+
+    Args:
+        s   (Service) : the service.
+        c   (Client)  : the client.
+        t_c (float)   : the communication delay.
+    Returns:
+        float: the discovery timespan.
+    """
+    # Compute x_s.
+    x_s = compute_x_s_hat(s, c, t_c)
+    # Compute the lenght of the Repetition Phase, up to the x_s-th message.
+    t_rep = compute_t_rep(c, x_s)
+    # Compute the result.
+    discovery_time = c.t_init + t_rep + t_c + s.ans_del + t_c
+    # Return the full result.
+    return Result(c, s, t_c, discovery_time, details={
+            "c.t_init" : c.t_init,
+            "c.t_rep" : t_rep,
+            "s.ans_del" : s.ans_del,
+            "t_c" : t_c + t_c
+        }
+    )
+
+def timing_analysis_c_full_details(s: Service, c: Client, t_c: float) -> Result:
+    """
+    Computes the timespan that a client running on a node needs to find the
+    service to which it wants to subscribe to. The case it covers is that of
+    Service in Offer Mode and Client in Request Mode.
+
+    Args:
+        s   (Service) : the service.
+        c   (Client)  : the client.
+        t_c (float)   : the communication delay.
+    Returns:
+        float: the discovery timespan.
+    """
+    # Compute the timing analysis for Case A.
+    timing_a = timing_analysis_a_full_details(s, c, t_c)
+    # Compute the timing analysis for Case B.
+    timing_b = timing_analysis_b_full_details(s, c, t_c)
+    # Return the result.
+    if timing_a.discovery_time < timing_b.discovery_time:
+        return timing_a
+    return timing_b
+
+
+def compute_discovery_times_full_details(system: System) -> List[Result]:
+    # Prepare the list of results.
+    results : List[Result] = []
+    # Iterate each relation.
+    for relation in system.relations:
+        # Service in Offer Mode and Client in Listen Mode
+        if relation.service.offer_mode and not relation.client.find_mode:
+            results.append(timing_analysis_a_full_details(relation.service, relation.client, relation.t_c))
+        # Service in Silent Mode and Client in Request Mode
+        elif not relation.service.offer_mode and relation.client.find_mode:
+            results.append(timing_analysis_b_full_details(relation.service, relation.client, relation.t_c))
+        # Service in Offer Mode and Client in Request Mode
+        elif relation.service.offer_mode and relation.client.find_mode:
+            results.append(timing_analysis_c_full_details(relation.service, relation.client, relation.t_c))
+        else:
+            sys.exit("Either service or client must be active (sending find/offer messages)")
+    return results
