@@ -250,7 +250,7 @@ class Relation:
         Returns:
             str: the relation to string.
         """
-        return f"<{self.client},{self.service},{self.t_c}>"
+        return "<{},{},{}>".format(self.client, self.service, self.t_c)
 
 
 class System:
