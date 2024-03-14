@@ -116,14 +116,24 @@ class Entity(object):
         for i in range(0, self.rep_max):
             self.rep_times.append(self.rep_times[-1] + pow(2, i) * self.rep_del)
 
-    def __repr__(self) -> str:
+
+    def __str__(self) -> str:
         """
-        Transforms the entity into a string.
+        Transforms the relation into a string.
 
         Returns:
-            str: the entity to string.
+            str: the relation to string.
         """
-        return self.name
+        return f"{self.name}"
+
+    def __repr__(self) -> str:
+        """
+        Transforms the relation into a string.
+
+        Returns:
+            str: the relation to string.
+        """
+        return f"{self.name}"
 
 
 class Client(Entity):
@@ -243,6 +253,15 @@ class Relation:
         self.service = service
         self.t_c = t_c
 
+    def __str__(self) -> str:
+        """
+        Transforms the relation into a string.
+
+        Returns:
+            str: the relation to string.
+        """
+        return f"<{str(self.client)},{str(self.service)},{str(self.t_c)}>"
+
     def __repr__(self) -> str:
         """
         Transforms the relation into a string.
@@ -250,7 +269,7 @@ class Relation:
         Returns:
             str: the relation to string.
         """
-        return "<{},{},{}>".format(self.client, self.service, self.t_c)
+        return f"<{str(self.client)},{str(self.service)},{str(self.t_c)}>"
 
 
 class System:
